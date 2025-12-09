@@ -1,0 +1,34 @@
+# Junkan Policy Configuration
+# Defines severity levels and blocking behavior for the CI gate.
+
+# Global Gate Settings
+block_on_critical: true
+warn_on_high: true
+
+rules:
+  # Rule 1: Protect Executive Dashboards
+  # Matches the Tableau dashboard in lineage.json
+  - name: "Executive Reporting"
+    pattern: ".*executive.*dashboard.*"
+    severity: CRITICAL
+    owners: 
+      - "@cfo-office"
+      - "@data-governance"
+    require_approval: true
+    message: "Changes affecting Executive Dashboards require CFO approval."
+
+  # Rule 2: Protect Core Warehousing
+  - name: "Core Fact Tables"
+    pattern: ".*fact_payments.*"
+    severity: HIGH
+    owners:
+      - "@data-engineering"
+    require_approval: true
+    message: "Modifications to Payment Fact tables must be reviewed by DE."
+
+  # Rule 3: General Infrastructure
+  - name: "Production DB"
+    pattern: ".*production-db.*"
+    severity: HIGH
+    owners:
+      - "@sre-team"

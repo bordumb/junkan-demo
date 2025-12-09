@@ -1,0 +1,59 @@
+{
+    "events": [
+      {
+        "eventType": "COMPLETE",
+        "eventTime": "2024-12-09T10:00:00Z",
+        "job": {
+          "namespace": "production",
+          "name": "payment_service_etl"
+        },
+        "inputs": [
+          {
+            "namespace": "postgres",
+            "name": "public.transactions",
+            "facets": {
+              "documentation": {
+                "description": "Raw transaction log from Payment Service API"
+              }
+            }
+          }
+        ],
+        "outputs": [
+          {
+            "namespace": "snowflake",
+            "name": "warehouse.fact_payments"
+          }
+        ]
+      },
+      {
+        "eventType": "COMPLETE",
+        "eventTime": "2024-12-09T11:00:00Z",
+        "job": {
+          "namespace": "bi_team",
+          "name": "executive_dashboard_loader"
+        },
+        "inputs": [
+          {
+            "namespace": "snowflake",
+            "name": "warehouse.fact_payments"
+          }
+        ],
+        "outputs": [
+          {
+            "namespace": "tableau",
+            "name": "reports.executive_revenue_dashboard",
+            "facets": {
+              "ownership": {
+                "owners": [
+                  {
+                    "name": "Data Governance Team",
+                    "type": "GROUP"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
