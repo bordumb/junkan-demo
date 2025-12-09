@@ -11,13 +11,13 @@ The core value of Junkan is detecting the invisible dependency chain that links 
 graph TD
     subgraph Infrastructure ["1. Infrastructure (Terraform)"]
         RDS[aws_db_instance.payments_db]
-        TAG[Identifier: 'payments-production-db']
+        TAG[Identifier: payments-production-db]
         RDS --- TAG
     end
 
     subgraph Stitching ["2. The Stitch (Junkan Core)"]
         MATCH{Fuzzy Match}
-        ENV_VAR[os.getenv('PAYMENTS_DB_HOST')]
+        ENV_VAR[os.getenv PAYMENTS_DB_HOST]
     end
 
     subgraph Application ["3. Application (Python)"]
