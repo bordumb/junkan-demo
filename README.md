@@ -1,26 +1,17 @@
-Here are the two documentation files for your `junkan-demo` repository.
-
-### 1\. `README.md`
-
-This file provides a clear entry point for users, explaining the specific "Vertical Spike" scenario and how to run it.
-
-**File Path:** `README.md`
-
-````markdown
 # Junkan Vertical Spike Demo
 
 This repository is a self-contained demonstration of **Junkan**, the pre-flight impact analysis engine.
 
 It simulates a "Golden Path" failure scenario where an infrastructure change silently breaks a downstream BI dashboard—a problem that traditional linters and tests miss, but Junkan catches.
 
-## 🎯 The Scenario
+## The Scenario
 
 1.  **The Change:** A developer renames an AWS RDS instance in Terraform (`infra/rds.tf`).
 2.  **The Break:** A Python service (`app/payment_service.py`) relies on that resource via an environment variable `PAYMENTS_DB_HOST`. The rename breaks this link.
 3.  **The Impact:** Production OpenLineage data shows that this Python service feeds the **Executive Revenue Dashboard**.
 4.  **The Gate:** Junkan detects this chain of events and **BLOCKS** the PR before it merges.
 
-## 🏗️ Architecture at a Glance
+## Architecture at a Glance
 
 ```mermaid
 graph LR
@@ -32,7 +23,7 @@ graph LR
     style DASH fill:#ff6b6b,stroke:#c92a2a,color:#fff
 ````
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
