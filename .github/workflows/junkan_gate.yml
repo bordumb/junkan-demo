@@ -23,29 +23,22 @@ jobs:
           python-version: '3.12'
 
       - name: Install Jnkn
-        # Replace this with how you install your tool. 
-        # If it's on PyPI: pip install jnkn
-        # For this demo, we'll install from the repo itself if you pushed the source code
-        run: |
-          pip install jnkn 
-          # Or if you pushed the source code to this repo:
-          # pip install .
+        # In a real scenario, you'd pip install jnkn.
+        # For this demo, we'll install it directly from PyPI (assuming you've published)
+        # OR you can install from git if your repo is public:
+        run: pip install jnkn 
 
       - name: Run Jnkn Diff & Comment
         env:
-          # This token is automatically provided by GitHub Actions
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 1. Initialize to ensure we have a clean state
+          # 1. Initialize & Scan
           jnkn init --force --no-telemetry
-          
-          # 2. Run Scan to build the graph
           jnkn scan
           
-          # 3. Generate the Markdown Report comparing main vs current branch
-          # We redirect output to a file to use it in the comment step
-          jnkn diff origin/main HEAD --format markdown > report.md
+          # 2. Generate Markdown Report
+          # Compare the PR base against the PR head
+          jnkn diff origin/${{ github.base_ref }} HEAD --format markdown > report.md
           
-          # 4. Post the comment to the PR
-          # We use the GitHub CLI (gh) which is pre-installed on runners
+          # 3. Post Comment
           gh pr comment ${{ github.event.pull_request.number }} --body-file report.md
