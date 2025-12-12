@@ -57,7 +57,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install Jnkn
-        run: pip install jnkn
+        run: pip install "git+https://github.com/bordumb/jnkn.git@dev-prRiskAssessment"
       - name: Run Analysis
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
