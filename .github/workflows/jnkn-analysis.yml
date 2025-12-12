@@ -12,16 +12,32 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install Jnkn
+      
+      - name: Install Jnkn from Source
         run: pip install "git+https://github.com/bordumb/jnkn.git@dev-prRiskAssessment"
+
       - name: Run Analysis
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Init
           jnkn init --force --no-telemetry
+          
+          # Build Graph
           jnkn scan
+          
+          # Generate Diff Report (Main vs HEAD)
+          echo "Running Diff..."
           jnkn diff origin/${{ github.base_ref }} HEAD --format markdown > report.md
+          
+          # Debug: Show report in logs
+          echo "--- REPORT START ---"
+          cat report.md
+          echo "--- REPORT END ---"
+          
+          # Post Comment
           gh pr comment ${{ github.event.pull_request.number }} --body-file report.md

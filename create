@@ -1,12 +1,15 @@
 #!/bin/bash
 set -e
 
+# --- Configuration ---
+# CHANGE THIS if your tool repo is named differently on GitHub
+TOOL_REPO_URL="git+https://github.com/bordumb/jnkn.git@dev-prRiskAssessment"
+
 echo "🔧 Configuring Demo Repository..."
 
 # --- 1. Setup V1 (Safe State) ---
-# We overwrite files to ensure they are in the 'Safe' state initially
 echo "📄 Writing baseline infrastructure (V1)..."
-mkdir -p terraform
+mkdir -p terraform src .github/workflows
 cat > terraform/main.tf << 'EOF'
 resource "aws_db_instance" "payment_db" {
   identifier = "payment-db-prod"
@@ -23,8 +26,6 @@ output "payment_db_host" {
 }
 EOF
 
-# Ensure src/app.py exists and expects the V1 output
-mkdir -p src
 cat > src/app.py << 'EOF'
 import os
 # Expects payment_db_host from Terraform
@@ -37,8 +38,7 @@ EOF
 
 # --- 2. Setup GitHub Workflow ---
 echo "🤖 Configuring GitHub Actions..."
-mkdir -p .github/workflows
-cat > .github/workflows/jnkn-analysis.yml << 'EOF'
+cat > .github/workflows/jnkn-analysis.yml <<EOF
 name: Jnkn Impact Analysis
 on:
   pull_request:
@@ -53,39 +53,51 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install Jnkn
-        run: pip install "git+https://github.com/bordumb/jnkn.git@dev-prRiskAssessment"
+      
+      - name: Install Jnkn from Source
+        run: pip install "${TOOL_REPO_URL}"
+
       - name: Run Analysis
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Init
           jnkn init --force --no-telemetry
+          
+          # Build Graph
           jnkn scan
-          jnkn diff origin/${{ github.base_ref }} HEAD --format markdown > report.md
-          gh pr comment ${{ github.event.pull_request.number }} --body-file report.md
+          
+          # Generate Diff Report (Main vs HEAD)
+          echo "Running Diff..."
+          jnkn diff origin/\${{ github.base_ref }} HEAD --format markdown > report.md
+          
+          # Debug: Show report in logs
+          echo "--- REPORT START ---"
+          cat report.md
+          echo "--- REPORT END ---"
+          
+          # Post Comment
+          gh pr comment \${{ github.event.pull_request.number }} --body-file report.md
 EOF
 
 # --- 3. Git Baseline (Main) ---
 echo "💾 Committing Safe State to 'main'..."
-# Initialize if needed
 if [ ! -d ".git" ]; then
   git init
   git branch -M main
 fi
 
-# Switch to main
+# Reset to main
 git checkout main 2>/dev/null || git checkout -b main
-
-# Add files and commit (allow empty if nothing changed)
 git add .
 git commit -m "Reset: Safe Baseline (V1)" --allow-empty
 
 # --- 4. Create Feature Branch & Breaking Change ---
 echo "🌿 Switching to feature branch 'feature/breaking-change'..."
-# Use -B to force reset the branch pointer if it already exists
 git checkout -B feature/breaking-change
 
 echo "💥 Introducing Breaking Change (V2)..."
@@ -105,15 +117,13 @@ output "payment_database_endpoint" {
 }
 EOF
 
-# Commit the breaking change
 git add terraform/main.tf
 git commit -m "Refactor: Rename database output (Breaking)"
 
 echo ""
 echo "✅ Demo Ready!"
 echo "--------------------------------------------------------"
-echo "You are now on branch: feature/breaking-change"
-echo "To trigger the PR comment:"
-echo "  1. git push -u origin main"
-echo "  2. git push -u origin feature/breaking-change --force"
+echo "To trigger the PR:"
+echo "1. git push -u origin main"
+echo "2. git push -u origin feature/breaking-change --force"
 echo "--------------------------------------------------------"
