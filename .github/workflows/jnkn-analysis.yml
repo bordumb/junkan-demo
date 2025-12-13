@@ -1,36 +1,43 @@
-name: Jnkn Gate
+name: Jnkn Impact Analysis
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-
 permissions:
   contents: read
-  pull-requests: write 
-
+  pull-requests: write
 jobs:
-  gate:
+  impact-analysis:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
       
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       
-      - name: Install Jnkn
+      - name: Install Jnkn from Source
         run: pip install "git+https://github.com/bordumb/jnkn.git@dev-prRiskAssessment"
 
-      - name: Initialize
-        run: jnkn init --force --no-telemetry
-
-      - name: Run Jnkn Gate
+      - name: Run Analysis
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          jnkn action \
-            --token "$GITHUB_TOKEN" \
-            --base "origin/${{ github.base_ref }}" \
-            --head "HEAD" \
-            --fail-on critical
+          # Init
+          jnkn init --force --no-telemetry
+          
+          # Build Graph
+          jnkn scan
+          
+          # Generate Diff Report (Main vs HEAD)
+          echo "Running Diff..."
+          jnkn diff origin/${{ github.base_ref }} HEAD --format markdown > report.md
+          
+          # Debug: Show report in logs
+          echo "--- REPORT START ---"
+          cat report.md
+          echo "--- REPORT END ---"
+          
+          # Post Comment
+          gh pr comment ${{ github.event.pull_request.number }} --body-file report.md
