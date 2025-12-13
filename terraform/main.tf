@@ -6,8 +6,8 @@ resource "aws_db_instance" "payment_db" {
   password = var.db_password
 }
 
-# V1 OUTPUT (Safe)
-output "payment_db_host" {
+# BREAKING CHANGE: Renamed output. App will break because it expects 'payment_db_host'
+output "payment_database_endpoint" {
   value = aws_db_instance.payment_db.address
   description = "The endpoint for the payment database"
 }
