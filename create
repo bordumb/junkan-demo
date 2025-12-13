@@ -3,7 +3,7 @@ set -e
 
 # --- Configuration ---
 # CHANGE THIS if your tool repo is named differently on GitHub
-TOOL_REPO_URL="git+https://github.com/bordumb/jnkn.git@dev-prRiskAssessment"
+TOOL_REPO_URL="git+https://github.com/bordumb/jnkn.git@dev-simplify0.0.1Launch"
 
 echo "🔧 Configuring Demo Repository..."
 
