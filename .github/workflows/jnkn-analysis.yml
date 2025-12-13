@@ -20,7 +20,7 @@ jobs:
           python-version: '3.12'
       
       - name: Install Jnkn
-        run: pip install "git+https://github.com/bordumb/jnkn.git@dev-simplify0.0.1Launch"
+        run: pip install "git+https://github.com/bordumb/jnkn.git@dev-prRiskAssessment"
 
       - name: Initialize
         run: jnkn init --force --no-telemetry
